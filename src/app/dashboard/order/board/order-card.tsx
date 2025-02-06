@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { CalendarDays, User, CircleDollarSign, Badge } from "lucide-react";
+import { OrderDetailsModal } from "./details-modal";
+import { useState } from "react";
 
 interface OrderCardProps {
   order: {
@@ -37,6 +39,7 @@ export default function OrderCard({
   isDragging,
   onStatusChange,
 }: OrderCardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const statusColors = {
     "Não Iniciado": "bg-gray-500",
     "Em Andamento": "bg-blue-500",
@@ -83,7 +86,7 @@ export default function OrderCard({
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 pb-2">
           <CalendarDays className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">
             Entrega:{" "}
@@ -111,10 +114,21 @@ export default function OrderCard({
             </SelectContent>
           </Select>
         )}
-        <Button variant="outline" size="sm" className="flex-1">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={() => setIsModalOpen(true)}
+        >
           Detalhes
         </Button>
       </CardFooter>
+
+      <OrderDetailsModal
+        order={order}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </Card>
   );
 }

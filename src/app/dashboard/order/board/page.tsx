@@ -32,6 +32,17 @@ export interface OrderWithDetails extends OrderItem {
   totalPrice: number;
   dueDate: string;
   position: number;
+  items?: {
+    pricing: {
+      additionalCosts: number;
+      createdAt: Date;
+      platformFee: number;
+      product: string;
+      profitMargin: number;
+      sellingPrice: number;
+    };
+    quantity: number;
+  }[];
 }
 
 const STATUSES = ["Não Iniciado", "Em Andamento", "Concluído"] as const;
@@ -147,7 +158,6 @@ export default function OrdersBoard() {
     // Movimento dentro da mesma coluna
     const oldIndex = orders.findIndex((o) => o._id === activeId);
     const newIndex = orders.findIndex((o) => o._id === overId);
-    console.log("oldIndex", oldIndex, newIndex);
     setOrders((prev) => arrayMove(prev, oldIndex, newIndex));
   };
 
