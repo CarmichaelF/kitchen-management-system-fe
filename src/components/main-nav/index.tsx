@@ -61,15 +61,15 @@ export function MainNav() {
 
       <div className="ml-auto flex items-center">
         <span>
-          Press{" "}
+          Pressione{" "}
           <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
             <span className="text-xs">⌘ J</span>
           </kbd>
-          <span className="text-xs"> or </span>
+          <span className="text-xs"> ou </span>
           <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
             <span className="text-xs">Ctrl J</span>
           </kbd>{" "}
-          to search
+          para Pesquisar
         </span>
         <div className="ml-6">
           <Button

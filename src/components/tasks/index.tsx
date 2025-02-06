@@ -11,7 +11,7 @@ import {
 
 export function Tasks() {
   return (
-    <Card className="bg-gray-50 p-6">
+    <Card className="p-6">
       <CardTitle className="text-sm font-semibold">Tarefas</CardTitle>
       <CardContent className="mt-1 -ml-1.5">
         <Table>
@@ -29,9 +29,7 @@ export function Tasks() {
               <TableCell className="text-yellow-600">Em andamento</TableCell>
             </TableRow>
             <TableRow>
-              <TableCell>
-                Mise en place do dia
-              </TableCell>
+              <TableCell>Mise en place do dia</TableCell>
               <TableCell>Gaby</TableCell>
               <TableCell className="text-green-500">Completo</TableCell>
             </TableRow>

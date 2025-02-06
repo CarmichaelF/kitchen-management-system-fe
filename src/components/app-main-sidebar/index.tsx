@@ -32,6 +32,21 @@ const data = {
       url: "/dashboard/product",
       icon: Bot,
     },
+    {
+      title: "Encomendas/Vendas",
+      url: "/dashboard/order",
+      icon: Bot,
+    },
+    {
+      title: "Cadastro de Cliente",
+      url: "/dashboard/customer/register",
+      icon: Bot,
+    },
+    {
+      title: "Quadro de Pedidos",
+      url: "/dashboard/order/board",
+      icon: Bot,
+    },
   ],
 };
 

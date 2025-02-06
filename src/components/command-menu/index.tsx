@@ -60,6 +60,20 @@ export function CommandMenu() {
               <Calendar />
               <Link href="/dashboard/product">Produtos</Link>
             </CommandItem>
+            <CommandItem>
+              <Calendar />
+              <Link href="/dashboard/order">Encomendas/Vendas</Link>
+            </CommandItem>
+            <CommandItem>
+              <Calendar />
+              <Link href="/dashboard/customer/register">
+                Cadastro de clientes
+              </Link>
+            </CommandItem>
+            <CommandItem>
+              <Calendar />
+              <Link href="/dashboard/order/board">Quadro de Pedidos</Link>
+            </CommandItem>
           </CommandGroup>
           <CommandSeparator />
         </CommandList>

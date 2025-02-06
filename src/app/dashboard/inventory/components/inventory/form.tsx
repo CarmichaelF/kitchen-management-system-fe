@@ -170,10 +170,7 @@ export function InventoryCardForm({
   }, [currentItem, reset]);
 
   return (
-    <form
-      className="flex flex-col bg-slate-50 gap-4"
-      onSubmit={handleSubmit(onSubmit)}
-    >
+    <form className="flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
       <Controller
         name="input"
         control={control}

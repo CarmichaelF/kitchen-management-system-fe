@@ -10,6 +10,9 @@ export function useBreadcrumb() {
       "/dashboard/input": "Insumos",
       "/dashboard/pricing": "Precificação",
       "/dashboard/product": "Produtos",
+      "/dashboard/order": "Encomendas/Vendas",
+      "/dashboard/customer/register": "Cadastro de Clientes",
+      "/dashboard/order/board": "Quadro de Pedidos",
     },
   ];
 

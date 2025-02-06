@@ -5,7 +5,7 @@ import { Fragment, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Combobox, ComboboxItemDTO } from "@/components/ui/combobox";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Plus, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/service/axios";
@@ -99,13 +99,9 @@ export function CreateProductForm() {
     <>
       <Card className="mx-auto px-6 pt-4">
         <CardHeader className="flex justify-between mb-4">
-          <CardTitle className="flex gap-2">
-            <Plus size={20} />
-            Novo Produto
-          </CardTitle>
           <ProductModal />
         </CardHeader>
-        <CardContent className="mt-8">
+        <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4 mt-4">
               <Controller

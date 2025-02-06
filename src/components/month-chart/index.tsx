@@ -40,7 +40,7 @@ const chartConfig = {
 
 export function MonthChart() {
   return (
-    <Card className="bg-gray-50 p-6">
+    <Card className="p-6">
       <div className="flex flex-col">
         <CardTitle className="text-5xl font-semibold">
           {valueToLocaleString(total)}
@@ -63,7 +63,9 @@ export function MonthChart() {
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  formatter={(value: ValueType) => valueToLocaleString(Number(value))}
+                  formatter={(value: ValueType) =>
+                    valueToLocaleString(Number(value))
+                  }
                 />
               }
             />

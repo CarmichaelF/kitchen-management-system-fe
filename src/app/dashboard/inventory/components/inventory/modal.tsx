@@ -31,7 +31,7 @@ export function InventoryModal() {
   useEffect(() => {
     if (open) {
       api
-        .get("/dashboard/inventory")
+        .get("/inventory")
         .then((response) => {
           setInventoryItems(response.data);
         })

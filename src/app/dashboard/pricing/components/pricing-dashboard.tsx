@@ -73,9 +73,6 @@ export function PricingDashboard() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="mb-4">
-          <CardTitle>Nova Precificação</CardTitle>
-        </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Controller
