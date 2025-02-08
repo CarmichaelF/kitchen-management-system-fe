@@ -19,9 +19,9 @@ export interface InventoryData {
 export interface InventoryDTO {
   _id: string;
   input: InputDTO;
-  name: string;
-  quantity: number;
   date: Date;
+  quantity: number;
+  costPerUnit: number;
   unity: Unity;
 }
 

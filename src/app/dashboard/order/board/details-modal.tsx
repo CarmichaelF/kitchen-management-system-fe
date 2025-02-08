@@ -7,7 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { User, Box, List } from "lucide-react";
 
 interface OrderDetailsModalProps {
@@ -45,7 +44,6 @@ export function OrderDetailsModal({
   isOpen,
   onClose,
 }: OrderDetailsModalProps) {
-  console.log("order", order);
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[625px]">
@@ -94,7 +92,7 @@ export function OrderDetailsModal({
                     </div>
                     <p className="text-sm font-medium">
                       R${" "}
-                      {(item.quantity * item.pricing.sellingPrice).toFixed(2)}
+                      {(item.quantity * item.pricing?.sellingPrice).toFixed(2)}
                     </p>
                   </div>
                 ))}
@@ -126,11 +124,6 @@ export function OrderDetailsModal({
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Botão de Fechar */}
-          <div className="flex justify-end">
-            <Button onClick={onClose}>Fechar</Button>
           </div>
         </div>
       </DialogContent>

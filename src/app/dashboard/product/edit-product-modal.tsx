@@ -1,24 +1,27 @@
-"use client";
-
-import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { Fragment, useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Input } from "@/components/ui/input";
-import { Combobox, ComboboxItemDTO } from "@/components/ui/combobox";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Plus, Trash } from "lucide-react";
-import { toast } from "sonner";
-import { api } from "@/service/axios";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Dispatch, SetStateAction, useState } from "react";
+import { Combobox, ComboboxItemDTO } from "@/components/ui/combobox";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, Trash } from "lucide-react";
 import { QuantityInput } from "@/components/ui/quantity-input";
 import { Unity } from "@/context/input-context";
-import "react-json-view-lite/dist/index.css";
 import {
   InventoryData,
   InventoryDTO,
   useInventoryContext,
 } from "@/context/inventory-context";
+import { toast } from "sonner";
+import { api } from "@/service/axios";
 import { AxiosError } from "axios";
 
 export interface ProductDTO {
@@ -30,10 +33,9 @@ export interface ProductDTO {
     quantity: number;
     name: string;
   }[];
-  createdAt: Date;
 }
 
-const productSchema = z.object({
+const editProductSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   ingredients: z.array(
     z.object({
@@ -43,21 +45,39 @@ const productSchema = z.object({
   ),
 });
 
-type ProductFormData = z.infer<typeof productSchema>;
+type EditProductFormData = z.infer<typeof editProductSchema>;
 
-export function CreateProductForm() {
-  const [currentItem, setCurrentItem] = useState<ComboboxItemDTO[]>(
-    [] as ComboboxItemDTO[]
-  );
+interface EditProductModalProps {
+  open: boolean;
+  setOpen: Dispatch<SetStateAction<boolean>>;
+  product: ProductDTO;
+}
+
+export function EditProductModal({
+  open,
+  setOpen,
+  product,
+}: EditProductModalProps) {
   const { allInventory } = useInventoryContext();
+  const [currentItem, setCurrentItem] = useState<ComboboxItemDTO[]>(() =>
+    product.ingredients.map((ingredient) => ({
+      value: ingredient.inventory._id,
+      label: ingredient.name,
+    }))
+  );
+
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema),
+  } = useForm<EditProductFormData>({
+    resolver: zodResolver(editProductSchema),
     defaultValues: {
-      ingredients: [{ inventory: "", quantity: 0 }],
+      name: product.name,
+      ingredients: product.ingredients.map((ingredient) => ({
+        inventory: ingredient.inventory._id,
+        quantity: ingredient.quantity,
+      })),
     },
   });
 
@@ -66,25 +86,24 @@ export function CreateProductForm() {
     name: "ingredients",
   });
 
-  const onSubmit = async (data: ProductFormData) => {
+  const onSubmit = async (data: EditProductFormData) => {
     try {
-      await api.post<ProductDTO>("/product", {
+      await api.put(`/product/${product._id}`, {
         name: data.name,
-        ingredients: data.ingredients.map(
-          (ingredient: { inventory: string; quantity: number }, index) => ({
-            inventory: ingredient.inventory,
-            quantity: ingredient.quantity,
-            name: currentItem[index].label,
-          })
-        ),
+        ingredients: data.ingredients.map((ingredient, index) => ({
+          inventory: ingredient.inventory,
+          quantity: ingredient.quantity,
+          name: currentItem[index]?.label,
+        })),
       });
 
-      toast.success("Produto criado com sucesso!");
+      toast.success("Produto atualizado com sucesso!");
+      setOpen(false);
     } catch (error) {
-      console.error("Erro ao criar produto:", error);
+      console.error("Erro ao editar produto:", error);
       if (error instanceof AxiosError)
         return toast.error(error.response?.data.message);
-      return toast.error("Erro ao criar o produto.");
+      return toast.error("Erro ao editar o produto.");
     }
   };
 
@@ -92,16 +111,18 @@ export function CreateProductForm() {
     const ingredient = allInventory.find(
       (n: InventoryData) => n.value === currentItem?.[index]?.value
     );
-    return ingredient?.unity || "kg"; // Default para kg se não encontrado
+    return ingredient?.unity || "kg";
   };
 
   return (
-    <>
-      <Card className="mx-auto px-6 pt-4">
-        <CardHeader className="flex justify-between mb-4"></CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-4 mt-4">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar Produto</DialogTitle>
+        </DialogHeader>
+        <Card>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <Controller
                 name="name"
                 control={control}
@@ -109,11 +130,11 @@ export function CreateProductForm() {
                   <div>
                     <Input
                       {...field}
-                      placeholder="Nome do produto"
+                      placeholder="Nome do Produto"
                       className="w-full"
                     />
                     {errors.name && (
-                      <p className="text-sm text-red-500 mt-1">
+                      <p className="text-sm text-red-500">
                         {errors.name.message}
                       </p>
                     )}
@@ -197,16 +218,14 @@ export function CreateProductForm() {
                 <Plus size={16} className="mr-2" />
                 Adicionar Insumo
               </Button>
-            </div>
 
-            <Button type="submit" className="w-full">
-              Salvar Produto
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {/* Modal para exibir os produtos cadastrados */}
-    </>
+              <Button type="submit" className="w-full">
+                Salvar Alterações
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </DialogContent>
+    </Dialog>
   );
 }

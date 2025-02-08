@@ -1,9 +1,6 @@
 "use client";
+
 import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { Combobox, ComboboxItemDTO } from "@/components/ui/combobox";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,115 +10,73 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { api } from "@/service/axios";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Pencil, Trash } from "lucide-react";
+import { PricingForm } from "./pricing-create-form";
+import { PricingEditModal } from "./pricing-edit-modal";
 
 interface Product {
   _id: string;
   name: string;
 }
 
-interface Pricing {
+export interface Pricing {
   _id: string;
   product: Product;
   profitMargin: number;
   additionalCosts: number;
   platformFee: number;
   sellingPrice: number;
-  createdAt: string;
 }
 
 export function PricingDashboard() {
-  const [currentItem, setCurrentItem] = useState<ComboboxItemDTO>(
-    {} as ComboboxItemDTO
-  );
   const [products, setProducts] = useState<Product[]>([]);
   const [pricings, setPricings] = useState<Pricing[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { control, register, handleSubmit, reset } = useForm();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPricing, setSelectedPricing] = useState<Pricing | null>(null);
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [productsRes, pricingsRes] = await Promise.all([
-          api.get("/product"),
-          api.get("/pricing"),
-        ]);
-        setProducts(productsRes.data);
-        setPricings(pricingsRes.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const onSubmit = async (data: any) => {
+  const loadData = async () => {
     try {
-      const res = await api.post("/pricing", data);
-      setPricings((prev) => [...prev, res.data]);
-      reset();
+      const [productsRes, pricingsRes] = await Promise.all([
+        api.get("/product"),
+        api.get("/pricing"),
+      ]);
+      setProducts(productsRes.data);
+      setPricings(pricingsRes.data);
     } catch (err) {
       console.error(err);
     }
   };
 
+  const deletePricing = async (id: string) => {
+    if (!confirm("Tem certeza que deseja deletar esta precificação?")) return;
+
+    try {
+      await api.delete(`/pricing/${id}`);
+      setPricings((prev) => prev.filter((p) => p._id !== id));
+    } catch (err) {
+      console.error("Erro ao deletar precificação:", err);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    loadData();
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   return (
     <div className="space-y-6">
-      <Card>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <Controller
-              name="productId"
-              control={control}
-              render={({ field }) => (
-                <Combobox
-                  items={products?.map((p) => ({
-                    value: p._id,
-                    label: p.name,
-                  }))}
-                  value={currentItem?.value || ""} // Usa o valor do currentItem
-                  onChange={(ev) => {
-                    field.onChange(ev.value); // Atualiza o valor do campo "name" no formulário
-                    setCurrentItem(ev); // Atualiza o currentItem
-                  }}
-                />
-              )}
-            />
-
-            <div className="grid grid-cols-3 gap-4">
-              <Input
-                {...register("profitMargin", { valueAsNumber: true })}
-                type="number"
-                placeholder="Margem de Lucro (%)"
-                step="0.1"
-              />
-
-              <Input
-                {...register("additionalCosts", { valueAsNumber: true })}
-                type="number"
-                placeholder="Custos Adicionais (R$)"
-                step="0.01"
-              />
-
-              <Input
-                {...register("platformFee", { valueAsNumber: true })}
-                type="number"
-                placeholder="Taxa Plataforma (%)"
-                step="0.1"
-              />
-            </div>
-
-            <Button type="submit" className="w-full">
-              Calcular e Salvar
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+      <PricingForm
+        products={products}
+        onPricingCreated={(newPricing) =>
+          setPricings([...pricings, newPricing])
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -132,59 +87,50 @@ export function PricingDashboard() {
             <TableHeader>
               <TableRow>
                 <TableHead>Produto</TableHead>
-                <TableHead>Margem</TableHead>
-                <TableHead>Custos Extras</TableHead>
-                <TableHead>Taxa</TableHead>
                 <TableHead>Preço Final</TableHead>
-                <TableHead>Data</TableHead>
+                <TableHead>Editar</TableHead>
+                <TableHead className="text-right">Deletar</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading
-                ? Array(5)
-                    .fill(0)
-                    .map((_, i) => (
-                      <TableRow key={i}>
-                        <TableCell>
-                          <Skeleton className="h-4 w-[120px]" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-[60px]" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-[80px]" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-[60px]" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-[80px]" />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton className="h-4 w-[100px]" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                : pricings.map((pricing) => (
-                    <TableRow key={pricing._id}>
-                      <TableCell>{pricing.product?.name}</TableCell>
-                      <TableCell>{pricing.profitMargin}%</TableCell>
-                      <TableCell>
-                        {formatCurrency(pricing.additionalCosts)}
-                      </TableCell>
-                      <TableCell>{pricing.platformFee}%</TableCell>
-                      <TableCell className="font-bold text-primary">
-                        {formatCurrency(pricing.sellingPrice)}
-                      </TableCell>
-                      <TableCell>
-                        {new Date(pricing.createdAt).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+              {pricings.map((pricing) => (
+                <TableRow key={pricing._id}>
+                  <TableCell>{pricing?.product?.name}</TableCell>
+                  <TableCell>R$ {pricing?.sellingPrice?.toFixed(2)}</TableCell>
+                  <TableCell>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => {
+                        setSelectedPricing(pricing);
+                        setModalOpen(true);
+                      }}
+                    >
+                      <Pencil />
+                    </Button>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      size="icon"
+                      variant="destructive"
+                      onClick={() => deletePricing(pricing._id)}
+                    >
+                      <Trash />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      <PricingEditModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        pricingData={selectedPricing}
+        products={products}
+      />
     </div>
   );
 }
