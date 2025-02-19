@@ -9,7 +9,8 @@ import { InputListModal } from "./components/input-list-modal";
 
 export default function InputEntries() {
   return (
-    <div className="px-6 flex flex-col gap-4">
+    <div className="px-6 flex flex-col gap-4 mt-6">
+      <h1 className="text-2xl font-bold">Cadastro de Insumos</h1>
       <InputProvider>
         <InputListModal />
         <InputCard label="Registrar insumo">

@@ -8,8 +8,10 @@ import { Combobox, ComboboxItemDTO } from "@/components/ui/combobox";
 import { AxiosError } from "axios";
 import { useFetchData } from "@/hooks/useFetchData";
 import { InputDTO, useInputContext } from "@/context/input-context";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
 
 export function InputDeleteForm() {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { names, fetchAndPopulateNames } = useInputContext();
   const { remove } = useFetchData({ path: "input" });
 
@@ -22,6 +24,10 @@ export function InputDeleteForm() {
   });
 
   const onSubmit: SubmitHandler<InputDTO> = async () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
     try {
       const response = await remove({
         id: currentItem.value,
@@ -57,8 +63,20 @@ export function InputDeleteForm() {
 
       <div className=" p-2 flex justify-end gap-4">
         <Button variant="ghost">Cancelar</Button>
-        <Button type="submit">Deletar</Button>
+        <Button variant="destructive" type="submit">
+          Deletar
+        </Button>
       </div>
+      {/* Dialog para Deleção */}
+      <DeleteDialog
+        title="Deletar Insumo"
+        description="Tem certeza de que deseja deletar este insumo? Esta ação não pode ser
+                                desfeita."
+        confirmText="Confirmar Deleção"
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        handleDeleteOrder={handleDelete}
+      />
     </form>
   );
 }

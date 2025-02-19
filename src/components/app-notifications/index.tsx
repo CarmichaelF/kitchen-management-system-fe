@@ -2,7 +2,6 @@
 
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { NotificationsNav } from "./notifications-nav";
-import { ActivitiesNav } from "./activities-nav";
 
 export function AppNotifications({
   ...props
@@ -15,7 +14,6 @@ export function AppNotifications({
     >
       <SidebarContent className="flex flex-col">
         <NotificationsNav />
-        <ActivitiesNav />
       </SidebarContent>
     </Sidebar>
   );

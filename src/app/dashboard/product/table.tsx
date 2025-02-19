@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { InventoryDTO } from "@/context/inventory-context";
 import { useFetchData } from "@/hooks/useFetchData";
-import { ProductDTO } from "./create-product-form";
+import { CreateProductForm, ProductDTO } from "./create-product-form";
 import { EditProductModal } from "./edit-product-modal";
 import { Button } from "@/components/ui/button";
+import { Trash } from "lucide-react";
+import { api } from "@/service/axios";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
 
 export function ProductTable() {
   const { getAll } = useFetchData({ path: "product" });
@@ -14,6 +17,8 @@ export function ProductTable() {
   const [products, setProducts] = useState<ProductDTO[]>([]);
   const [open, setOpen] = useState(false);
 
+  const [deletingProductID, setDeletingProductID] = useState<string>();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductDTO | null>(
     null
   );
@@ -31,7 +36,7 @@ export function ProductTable() {
           const enrichedIngredients = await Promise.all(
             (product.ingredients || []).map(async (ingredient) => {
               const { data } = await getInventory({
-                id: ingredient.inventory._id,
+                id: ingredient?.inventory._id,
               });
               return { ...ingredient, unity: data.unity };
             })
@@ -51,12 +56,24 @@ export function ProductTable() {
     setSelectedProduct(product);
   };
 
+  const deleteProduct = async () => {
+    try {
+      await api.delete(`/product/${deletingProductID}`);
+      setProducts((prev) => prev.filter((p) => p._id !== deletingProductID));
+    } catch (err) {
+      console.error("Erro ao deletar produto:", err);
+    }
+  };
+
   useEffect(() => {
     handleViewProducts();
   }, [open]);
 
   return (
     <div className="p-6">
+      <h1 className="text-2xl font-bold">Cadastro de Produtos</h1>
+      <CreateProductForm onCreate={handleViewProducts} products={products} />
+
       <div className=" mt-4">
         <h2 className="text-xl font-semibold mb-4">Produtos Cadastrados</h2>
         <p>
@@ -75,13 +92,13 @@ export function ProductTable() {
                       <thead>
                         <tr className="border-b">
                           <th className="px-4 py-2 text-left text-sm font-medium">
-                            Inventory ID
+                            ID do Estoque
                           </th>
                           <th className="px-4 py-2 text-left text-sm font-medium">
-                            Name
+                            Nome
                           </th>
                           <th className="px-4 py-2 text-left text-sm font-medium">
-                            Quantity
+                            Quantidade
                           </th>
                         </tr>
                       </thead>
@@ -105,13 +122,24 @@ export function ProductTable() {
                         ))}
                       </tbody>
                     </table>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleOpenEditProduct(product)}
-                      className="mt-4"
-                    >
-                      Editar Produto
-                    </Button>
+                    <div className="flex">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleOpenEditProduct(product)}
+                      >
+                        Editar Produto
+                      </Button>
+                      <Button
+                        className="ml-auto"
+                        variant="destructive"
+                        onClick={() => {
+                          setIsDeleteDialogOpen(true);
+                          setDeletingProductID(product._id);
+                        }}
+                      >
+                        <Trash />
+                      </Button>
+                    </div>
                   </>
                 ) : (
                   <p className="text-sm text-muted-foreground">
@@ -134,6 +162,16 @@ export function ProductTable() {
           product={selectedProduct}
         />
       )}
+      {/* Dialog para Deleção */}
+      <DeleteDialog
+        title="Deletar Estoque"
+        description="Tem certeza de que deseja deletar este produto? Esta ação não pode ser
+                                desfeita."
+        confirmText="Confirmar Deleção"
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        handleDeleteOrder={deleteProduct}
+      />
     </div>
   );
 }

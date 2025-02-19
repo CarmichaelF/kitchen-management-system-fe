@@ -1,12 +1,10 @@
-// components/OrderCard.tsx
-"use client";
-
+import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardHeader,
-  CardTitle,
   CardContent,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import {
   Select,
@@ -15,43 +13,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { CalendarDays, User, CircleDollarSign, Badge } from "lucide-react";
-import { OrderDetailsModal } from "./details-modal";
-import { useState } from "react";
+import { Badge, CalendarDays, CircleDollarSign, User } from "lucide-react";
+import { OrderWithDetails, Status } from "./page";
 
 interface OrderCardProps {
-  order: {
-    _id: string;
-    status: "Não Iniciado" | "Em Andamento" | "Concluído";
-    totalPrice: number;
-    dueDate: string;
-    customer: {
-      name: string;
-    };
-  };
-  isDragging?: boolean;
-  onStatusChange?: (orderId: string, newStatus: string) => void;
+  order: OrderWithDetails;
+  onStatusChange?: (orderId: string, newStatus: Status) => void;
+  setIsDetailsOpen?: (isOpen: boolean) => void;
+  setActiveOrder?: (order: OrderWithDetails | null) => void;
 }
 
-export default function OrderCard({
+export function OrderCard({
   order,
-  isDragging,
   onStatusChange,
+  setIsDetailsOpen,
+  setActiveOrder,
 }: OrderCardProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const statusColors = {
     "Não Iniciado": "bg-gray-500",
     "Em Andamento": "bg-blue-500",
     Concluído: "bg-green-500",
+    Cancelado: "bg-red-500",
   };
 
   return (
-    <Card
-      className={`relative overflow-hidden p-4 ${
-        isDragging ? "shadow-xl ring-2 ring-primary" : ""
-      }`}
-    >
+    <Card className="relative overflow-hidden p-4">
       {/* Barra lateral de status */}
       <div
         className={`absolute left-0 top-0 h-full w-1 ${
@@ -73,7 +59,7 @@ export default function OrderCard({
       <CardContent className="space-y-3">
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{order.customer?.name}</span>
+          <span className="text-sm">{order.customerDetails?.name}</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -99,10 +85,12 @@ export default function OrderCard({
 
       {/* Rodapé */}
       <CardFooter className="flex justify-between gap-2">
-        {onStatusChange && (
+        {order.status !== "Cancelado" && onStatusChange && (
           <Select
             value={order.status}
-            onValueChange={(value) => onStatusChange(order._id, value)}
+            onValueChange={(value) =>
+              onStatusChange(order._id, value as Status)
+            }
           >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Status" />
@@ -118,17 +106,14 @@ export default function OrderCard({
           variant="outline"
           size="sm"
           className="flex-1"
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setIsDetailsOpen?.(true);
+            setActiveOrder?.(order);
+          }}
         >
           Detalhes
         </Button>
       </CardFooter>
-
-      <OrderDetailsModal
-        order={order}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
     </Card>
   );
 }

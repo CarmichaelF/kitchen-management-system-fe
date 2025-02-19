@@ -9,12 +9,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { api } from "@/service/axios";
-import { Pencil, Trash } from "lucide-react";
+import { Pencil, Trash, RefreshCw } from "lucide-react";
 import { PricingForm } from "./pricing-create-form";
 import { PricingEditModal } from "./pricing-edit-modal";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
+import { toast } from "sonner";
 
 interface Product {
   _id: string;
@@ -25,12 +27,23 @@ export interface Pricing {
   _id: string;
   product: Product;
   profitMargin: number;
-  additionalCosts: number;
+  fixedCosts: {
+    rent: number;
+    taxes: number;
+    utilities: number;
+    marketing: number;
+    accounting: number;
+  };
   platformFee: number;
   sellingPrice: number;
+  createdAt: Date;
+  productionCost: number;
+  yields: number;
 }
 
 export function PricingDashboard() {
+  const [deletingPricingID, setDeletingPricingID] = useState<string>("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [pricings, setPricings] = useState<Pricing[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -49,12 +62,10 @@ export function PricingDashboard() {
     }
   };
 
-  const deletePricing = async (id: string) => {
-    if (!confirm("Tem certeza que deseja deletar esta precificação?")) return;
-
+  const deletePricing = async () => {
     try {
-      await api.delete(`/pricing/${id}`);
-      setPricings((prev) => prev.filter((p) => p._id !== id));
+      await api.delete(`/pricing/${deletingPricingID}`);
+      setPricings((prev) => prev.filter((p) => p._id !== deletingPricingID));
     } catch (err) {
       console.error("Erro ao deletar precificação:", err);
     }
@@ -63,6 +74,23 @@ export function PricingDashboard() {
   const handleCloseModal = () => {
     setModalOpen(false);
     loadData();
+  };
+
+  // Função para recalcular a precificação
+  const handleRecalculatePricing = async (pricingId: string) => {
+    try {
+      const response = await api.post(`/pricing/${pricingId}/recalculate`);
+      const updatedPricing = response.data;
+
+      setPricings((prev) =>
+        prev.map((p) => (p._id === pricingId ? updatedPricing : p))
+      );
+
+      toast.success("Precificação recalculada com sucesso!");
+    } catch (err) {
+      console.error("Erro ao recalcular precificação:", err);
+      toast.error("Erro ao recalcular precificação.");
+    }
   };
 
   useEffect(() => {
@@ -80,7 +108,9 @@ export function PricingDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Histórico de Precificações</CardTitle>
+          <h2 className="text-2xl font-bold mb-6">
+            Histórico de Precificações
+          </h2>
         </CardHeader>
         <CardContent>
           <Table>
@@ -89,7 +119,8 @@ export function PricingDashboard() {
                 <TableHead>Produto</TableHead>
                 <TableHead>Preço Final</TableHead>
                 <TableHead>Editar</TableHead>
-                <TableHead className="text-right">Deletar</TableHead>
+                <TableHead>Recalcular</TableHead>
+                <TableHead>Excluir</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,11 +140,23 @@ export function PricingDashboard() {
                       <Pencil />
                     </Button>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleRecalculatePricing(pricing._id)}
+                    >
+                      <RefreshCw />
+                    </Button>
+                  </TableCell>
+                  <TableCell>
                     <Button
                       size="icon"
                       variant="destructive"
-                      onClick={() => deletePricing(pricing._id)}
+                      onClick={() => {
+                        setIsDeleteDialogOpen(true);
+                        setDeletingPricingID(pricing._id);
+                      }}
                     >
                       <Trash />
                     </Button>
@@ -130,6 +173,15 @@ export function PricingDashboard() {
         onClose={handleCloseModal}
         pricingData={selectedPricing}
         products={products}
+      />
+
+      <DeleteDialog
+        title="Deletar Precificação"
+        description="Tem certeza de que deseja deletar esta precificação? Esta ação não pode ser desfeita."
+        confirmText="Confirmar Deleção"
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        handleDeleteOrder={deletePricing}
       />
     </div>
   );

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useHookFormMask } from "use-mask-input";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
 
 interface FormData {
   input: string;
@@ -35,6 +36,7 @@ export function InventoryCardForm({
 }: {
   type: InventoryCardProps["type"];
 }) {
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const submitLabel =
     type === "entry" ? "Entrada" : type === "update" ? "Atualizar" : "Saída";
   const { names, fetchAndPopulateNames } = useInputContext();
@@ -120,7 +122,7 @@ export function InventoryCardForm({
         await refreshSelects();
         break;
       case "exit":
-        await handleRemove();
+        setIsDeleteDialogOpen(true);
         await refreshSelects();
         break;
     }
@@ -244,6 +246,16 @@ export function InventoryCardForm({
           {submitLabel}
         </Button>
       </div>
+      {/* Dialog para Deleção */}
+      <DeleteDialog
+        title="Deletar Estoque"
+        description="Tem certeza de que deseja deletar este estoque? Esta ação não pode ser
+                    desfeita."
+        confirmText="Confirmar Deleção"
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        handleDeleteOrder={handleRemove}
+      />
     </form>
   );
 }

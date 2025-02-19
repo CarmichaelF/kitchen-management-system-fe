@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Calendar } from "lucide-react";
+import {
+  ClipboardList,
+  FileText,
+  Package,
+  ShoppingBag,
+  Tag,
+  Users,
+  Warehouse,
+} from "lucide-react";
 
 import {
   CommandDialog,
@@ -45,33 +53,31 @@ export function CommandMenu() {
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Páginas">
             <CommandItem>
-              <Calendar />
-              <Link href="/dashboard/inventory">Estoque</Link>
-            </CommandItem>
-            <CommandItem>
-              <Calendar />
+              <Package />
               <Link href="/dashboard/input">Insumos</Link>
             </CommandItem>
             <CommandItem>
-              <Calendar />
-              <Link href="/dashboard/pricing">Precificação</Link>
+              <Warehouse />
+              <Link href="/dashboard/inventory">Estoque</Link>
             </CommandItem>
             <CommandItem>
-              <Calendar />
+              <ShoppingBag />
               <Link href="/dashboard/product">Produtos</Link>
             </CommandItem>
             <CommandItem>
-              <Calendar />
-              <Link href="/dashboard/order">Encomendas/Vendas</Link>
+              <Tag />
+              <Link href="/dashboard/pricing">Precificação</Link>
             </CommandItem>
             <CommandItem>
-              <Calendar />
-              <Link href="/dashboard/customer/register">
-                Cadastro de clientes
-              </Link>
+              <Users />
+              <Link href="/dashboard/customer">Cadastro de clientes</Link>
             </CommandItem>
             <CommandItem>
-              <Calendar />
+              <FileText />
+              <Link href="/dashboard/order">Encomendas / Vendas</Link>
+            </CommandItem>
+            <CommandItem>
+              <ClipboardList />
               <Link href="/dashboard/order/board">Quadro de Pedidos</Link>
             </CommandItem>
           </CommandGroup>

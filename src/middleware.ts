@@ -1,29 +1,48 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { api } from "./service/axios";
+import { AxiosError } from "axios";
 
-// Lista de páginas públicas (que não exigem autenticação)
 const publicPaths = ["/auth/login", "/auth/register", "/api/public"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Se o usuário estiver acessando uma rota pública, permite
+
+  // 🚀 Se for uma rota pública, permite acesso direto
   if (publicPaths.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
-  // Obtem o token do cookie (supondo que você o tenha armazenado em um cookie)
+  // 🔍 Obtém o token do cookie
   const token = request.cookies.get("token")?.value;
   if (!token) {
-    // Redireciona para a página de login
-    const loginUrl = new URL("/auth/login", request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
-  return NextResponse.next();
+  // ✅ Verifica se o token é válido chamando a API de validação
+  try {
+    const response = await api.post(
+      "/auth/validate",
+      {}, // Corpo da requisição (vazio)
+      { headers: { Authorization: `Bearer ${token}` } } // Headers corretamente posicionados
+    );
+
+    if (response.data.valid) return NextResponse.next();
+  } catch (error) {
+    console.error("❌ Erro ao validar o token:", error);
+
+    if (error instanceof AxiosError) {
+      console.error("🔴 Erro do Axios:", error.message);
+    }
+
+    return NextResponse.redirect(new URL("/auth/login", request.url));
+  }
+
+  // 🚨 Se a validação falhar, força o redirecionamento
+  return NextResponse.redirect(new URL("/auth/login", request.url));
 }
 
-// Configura para que o middleware seja executado para todas as rotas protegidas
+// 🔧 Configuração do middleware para todas as rotas, exceto as públicas
 export const config = {
   matcher: ["/((?!_next|favicon.ico|static|public|auth).*)"],
 };

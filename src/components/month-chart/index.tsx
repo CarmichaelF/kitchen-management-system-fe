@@ -1,7 +1,6 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
-
 import {
   ChartConfig,
   ChartContainer,
@@ -13,23 +12,13 @@ import {
 import { Card, CardContent, CardDescription, CardTitle } from "../ui/card";
 import { ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { valueToLocaleString } from "@/utils";
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react"; // Importe ícones de olho
 
-const chartData = [
-  { month: "Janeiro", income: 203012 },
-  { month: "Fevereiro", income: 503012 },
-  { month: "Março", income: 406112 },
-  { month: "Abril", income: 783112 },
-  { month: "May", income: 233812 },
-  { month: "Junho", income: 403912 },
-  { month: "Julho", income: 323912 },
-  { month: "Agosto", income: 102412 },
-  { month: "Setembro", income: 683912 },
-  { month: "Outubro", income: 123912 },
-  { month: "Novembro", income: 503912 },
-  { month: "Dezembro", income: 903912 },
-];
-
-const total = chartData.reduce((acc, { income }) => acc + income, 0);
+export interface MonthlyRevenue {
+  month: string;
+  income: number;
+}
 
 const chartConfig = {
   income: {
@@ -38,13 +27,34 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function MonthChart() {
+export function MonthChart({ chartData }: { chartData: MonthlyRevenue[] }) {
+  const [isValueVisible, setIsValueVisible] = useState(false); // Estado para controlar a visibilidade
+  const total = chartData.reduce((acc, { income }) => acc + income, 0);
+
+  // Função para alternar a visibilidade do valor
+  const toggleValueVisibility = () => {
+    setIsValueVisible((prev) => !prev);
+  };
+
   return (
     <Card className="p-6">
       <div className="flex flex-col">
-        <CardTitle className="text-5xl font-semibold">
-          {valueToLocaleString(total)}
-        </CardTitle>
+        <div className="flex items-center">
+          <CardTitle
+            className={`text-5xl font-semibold transition-all ${
+              !isValueVisible ? "blur-sm" : ""
+            }`}
+          >
+            {isValueVisible ? valueToLocaleString(total) : "*****"}
+          </CardTitle>
+          <button
+            onClick={toggleValueVisibility}
+            className="p-1 hover:bg-gray-100 rounded-full transition-colors ml-4"
+            aria-label={isValueVisible ? "Ocultar valor" : "Mostrar valor"}
+          >
+            {isValueVisible ? <Eye size={16} /> : <EyeOff size={16} />}
+          </button>
+        </div>
         <CardDescription className="text-black opacity-40 mt-2 ml-1">
           Faturamento anual
         </CardDescription>

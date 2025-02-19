@@ -15,9 +15,11 @@ import { useBreadcrumb } from "@/hooks/use-breadcrumb";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LogoutButton } from "../logout-button";
+import { useParams } from "next/navigation";
 
 export function MainNav() {
-  const title = useBreadcrumb();
+  const { orderID: id } = useParams();
+  const breadcrumbs = useBreadcrumb({ id: id as string });
 
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -43,19 +45,24 @@ export function MainNav() {
   }, []);
 
   return (
-    <div className="flex w-full items-center h-[68px] p-4 border-b border-gray-200 sticky top-0 text-foreground bg-background">
+    <div className="flex w-full items-center h-[68px] p-4 border-b border-gray-200 sticky top-0 text-foreground bg-background z-10">
       <SidebarTrigger />
       <Breadcrumb className="flex items-center ml-1.5">
         <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link href="/dashboard">Dashboard</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{title}</BreadcrumbPage>
-          </BreadcrumbItem>
+          {breadcrumbs.map((breadcrumb, index) => (
+            <BreadcrumbItem key={breadcrumb.href}>
+              {index < breadcrumbs.length - 1 ? (
+                <>
+                  <BreadcrumbLink asChild>
+                    <Link href={breadcrumb.href}>{breadcrumb.label}</Link>
+                  </BreadcrumbLink>
+                  <BreadcrumbSeparator />
+                </>
+              ) : (
+                <BreadcrumbPage>{breadcrumb.label}</BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          ))}
         </BreadcrumbList>
       </Breadcrumb>
 

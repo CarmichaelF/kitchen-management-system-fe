@@ -1,4 +1,3 @@
-// components/OrderDetailsModal.tsx
 "use client";
 
 import {
@@ -7,71 +6,54 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { User, Box, List } from "lucide-react";
+import { User, Box, List, FileText } from "lucide-react";
+import { OrderWithDetails } from "./page";
+import { Dispatch, SetStateAction } from "react";
+import { Button } from "@/components/ui/button";
 
 interface OrderDetailsModalProps {
-  order: {
-    _id: string;
-    status: string;
-    totalPrice: number;
-    dueDate: string;
-    customer: {
-      name: string;
-      email?: string;
-      phone?: string;
-    };
-    items?: {
-      product: {
-        name: string;
-      };
-      quantity: number;
-      pricing: {
-        additionalCosts: number;
-        createdAt: Date;
-        platformFee: number;
-        product: string;
-        profitMargin: number;
-        sellingPrice: number;
-      };
-    }[];
-  };
-  isOpen: boolean;
-  onClose: () => void;
+  order: OrderWithDetails;
+  isDetailsOpen: boolean;
+  setIsDetailsOpen: Dispatch<SetStateAction<boolean>>;
+  onCancelOrder: (orderId: string, force?: boolean) => void;
 }
 
 export function OrderDetailsModal({
   order,
-  isOpen,
-  onClose,
+  isDetailsOpen,
+  setIsDetailsOpen,
+  onCancelOrder,
 }: OrderDetailsModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[625px]">
+    <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+      <DialogContent className="z-50">
         <DialogHeader>
           <DialogTitle className="text-xl">Detalhes do Pedido</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Informações do Cliente */}
-          <div className="space-y-2">
-            <h3 className="font-semibold flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Cliente
-            </h3>
-            <div className="pl-7 space-y-1">
-              <p className="text-sm">{order.customer.name}</p>
-              {order.customer.email && (
-                <p className="text-sm text-muted-foreground">
-                  {order.customer.email}
-                </p>
-              )}
-              {order.customer.phone && (
-                <p className="text-sm text-muted-foreground">
-                  {order.customer.phone}
-                </p>
-              )}
+          {order.customerDetails && (
+            <div className="space-y-2">
+              <h3 className="font-semibold flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Cliente
+              </h3>
+              <div className="pl-7 space-y-1">
+                <p className="text-sm">{order?.customerDetails?.name}</p>
+                {order?.customerDetails?.email && (
+                  <p className="text-sm text-muted-foreground">
+                    {order?.customerDetails?.email}
+                  </p>
+                )}
+                {order?.customerDetails?.phone && (
+                  <p className="text-sm text-muted-foreground">
+                    {order?.customerDetails?.phone}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Itens do Pedido */}
           {order.items && (
@@ -81,21 +63,23 @@ export function OrderDetailsModal({
                 Itens
               </h3>
               <div className="pl-7 space-y-2">
-                {order.items.map((item, index) => (
-                  <div key={index} className="flex justify-between">
-                    <div>
-                      <p className="text-sm">{item?.product?.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.quantity}x R${" "}
-                        {item?.pricing?.sellingPrice.toFixed(2)}
+                {order.items.map((item, index) => {
+                  return (
+                    <div key={index} className="flex justify-between">
+                      <div>
+                        <p className="text-sm">
+                          {item?.pricing?.product?.name}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.quantity}x R$ {order.totalPrice}
+                        </p>
+                      </div>
+                      <p className="text-sm font-medium">
+                        R$ {(order.totalPrice / item.quantity).toFixed(2)}
                       </p>
                     </div>
-                    <p className="text-sm font-medium">
-                      R${" "}
-                      {(item.quantity * item.pricing?.sellingPrice).toFixed(2)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
@@ -125,6 +109,28 @@ export function OrderDetailsModal({
               </div>
             </div>
           </div>
+          {/* Observações */}
+          {order.notes && (
+            <div className="space-y-4 mb-6">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Observações
+              </h3>
+              <div className="pl-7">
+                <p className="text-sm">{order.notes}</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Botão de Cancelar Pedido */}
+        <div className="mt-4">
+          <Button
+            variant="destructive"
+            onClick={() => onCancelOrder(order._id)} // Chama a função de cancelamento
+          >
+            Cancelar Pedido
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -139,12 +139,10 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="px-6 py-8">
+    <div className="px-6 py-6 flex-1">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold">
-            Nova Encomenda / Venda
-          </CardTitle>
+          <h1 className="text-2xl font-bold mb-6">Nova Encomenda / Venda</h1>
         </CardHeader>
         <CardContent>
           {/* Seção para selecionar o cliente */}
@@ -218,7 +216,7 @@ export default function OrdersPage() {
                   className="flex items-center gap-4 border p-4 rounded"
                 >
                   <div className="flex-1">
-                    <p className="font-bold">{pricing.product.name}</p>
+                    <p className="font-bold">{pricing?.product?.name}</p>
                     <p className="text-sm">
                       Preço: R$ {pricing.sellingPrice.toFixed(2)}
                     </p>

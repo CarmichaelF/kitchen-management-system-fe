@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { api } from "@/service/axios";
 import { z } from "zod";
@@ -24,7 +24,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash } from "lucide-react";
+import { AxiosError } from "axios";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
 
 const customerSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -41,6 +43,10 @@ interface Customer extends CustomerFormData {
 
 export default function CustomerRegisterPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingCustomerID, setDeletingCustomerID] = useState<string | null>(
+    null
+  );
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -53,18 +59,15 @@ export default function CustomerRegisterPage() {
     resolver: zodResolver(customerSchema),
   });
 
-  // Buscar clientes cadastrados
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const response = await api.get("/customer");
-        setCustomers(response.data);
-      } catch (error) {
-        console.error("Erro ao buscar clientes:", error);
-      }
-    };
-    fetchCustomers();
-  }, []);
+  const fetchCustomers = async () => {
+    // Buscar clientes cadastrados
+    try {
+      const response = await api.get("/customer");
+      setCustomers(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar clientes:", error);
+    }
+  };
 
   // Cadastro de novo cliente
   const onSubmit = async (data: CustomerFormData) => {
@@ -105,10 +108,31 @@ export default function CustomerRegisterPage() {
     }
   };
 
+  const handleDeleteCustomer = async () => {
+    try {
+      const response = await api.delete(`/customer/${deletingCustomerID}`);
+      toast(response.data.message);
+      await fetchCustomers();
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        toast(error.response?.data.message);
+      } else {
+        console.error("An unexpected error occurred");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
   return (
     <>
       {/* Formulário de cadastro */}
-      <Card className="mx-auto px-6 pt-4">
+      <Card className="mx-auto px-6 pt-6">
+        <CardHeader>
+          <h1 className="text-2xl font-bold mb-6">Cadastro de Clientes</h1>
+        </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
@@ -186,7 +210,8 @@ export default function CustomerRegisterPage() {
               <TableHead>E-mail</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Endereço</TableHead>
-              <TableHead>Ações</TableHead>
+              <TableHead>Editar</TableHead>
+              <TableHead>Deletar</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -202,6 +227,17 @@ export default function CustomerRegisterPage() {
                     onClick={() => openEditModal(customer)}
                   >
                     <Pencil className="h-5 w-5" />
+                  </Button>
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="destructive"
+                    onClick={() => {
+                      setIsDeleteDialogOpen(true);
+                      setDeletingCustomerID(customer._id);
+                    }}
+                  >
+                    <Trash className="h-5 w-5" />
                   </Button>
                 </TableCell>
               </TableRow>
@@ -247,6 +283,17 @@ export default function CustomerRegisterPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog para Deleção */}
+      <DeleteDialog
+        title="Deletar Cliente"
+        description="Tem certeza de que deseja deletar este cliente? Esta ação não pode ser
+              desfeita."
+        confirmText="Confirmar Deleção"
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        handleDeleteOrder={handleDeleteCustomer}
+      />
     </>
   );
 }

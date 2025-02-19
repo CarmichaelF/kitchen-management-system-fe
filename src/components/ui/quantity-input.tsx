@@ -15,22 +15,17 @@ export const QuantityInput = forwardRef<HTMLInputElement, QuantityInputProps>(
     const handleChange = (values: { value: string }) => {
       let cleanValue = values.value;
 
-      if (unity === "un") {
-        // Para unidades, permite somente dígitos.
-        cleanValue = cleanValue.replace(/\D/g, "");
-      } else {
-        // Permite dígitos, vírgulas e pontos.
-        cleanValue = cleanValue
-          .replace(/[^\d,.]/g, "")
-          .replace(/(,.*?),(.*)/, "$1");
+      // Permite dígitos, vírgulas e pontos.
+      cleanValue = cleanValue
+        .replace(/[^\d,.]/g, "")
+        .replace(/(,.*?),(.*)/, "$1");
 
-        const parts = cleanValue.split(",");
-        let formatted = parts[0];
-        if (parts.length > 1) {
-          formatted += "," + parts[1].slice(0, 3);
-        }
-        cleanValue = formatted;
+      const parts = cleanValue.split(",");
+      let formatted = parts[0];
+      if (parts.length > 1) {
+        formatted += "," + parts[1].slice(0, 3);
       }
+      cleanValue = formatted;
 
       onChange(cleanValue);
     };

@@ -1,12 +1,12 @@
 "use client";
 
 import { useForm, Controller, useFieldArray } from "react-hook-form";
-import { Fragment, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Combobox, ComboboxItemDTO } from "@/components/ui/combobox";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Plus, Trash } from "lucide-react";
+import { Plus, Trash, RefreshCw } from "lucide-react"; // Adicionei o ícone RefreshCw
 import { toast } from "sonner";
 import { api } from "@/service/axios";
 import { z } from "zod";
@@ -38,33 +38,80 @@ const productSchema = z.object({
   ingredients: z.array(
     z.object({
       inventory: z.string().min(1, "Selecione um insumo"),
-      quantity: z.number().min(0.01, "Quantidade inválida"),
+      quantity: z.number().min(0.000000000001, "Quantidade inválida"),
     })
   ),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
 
-export function CreateProductForm() {
-  const [currentItem, setCurrentItem] = useState<ComboboxItemDTO[]>(
-    [] as ComboboxItemDTO[]
-  );
+interface CreateProductFormProps {
+  onCreate(): void;
+  products: ProductDTO[]; // Lista de produtos existentes
+}
+
+export function CreateProductForm({
+  onCreate,
+  products,
+}: CreateProductFormProps) {
+  const [currentItem, setCurrentItem] = useState<ComboboxItemDTO[]>([]);
+  const [selectedBaseProduct, setSelectedBaseProduct] = useState<string>(""); // Estado para o produto base selecionado
   const { allInventory } = useInventoryContext();
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
     defaultValues: {
+      name: "",
       ingredients: [{ inventory: "", quantity: 0 }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, replace } = useFieldArray({
     control,
     name: "ingredients",
   });
+
+  // Preenche o formulário com os dados do produto selecionado
+  const handleSelectProduct = (productId: string) => {
+    const selectedProduct = products.find((p) => p._id === productId);
+    if (selectedProduct) {
+      // Preenche o nome do produto
+      reset({ name: selectedProduct.name });
+
+      // Preenche os ingredientes
+      const ingredientsWithInventory = selectedProduct.ingredients.map(
+        (ing) => ({
+          inventory: ing.inventory._id,
+          quantity: ing.quantity,
+        })
+      );
+      replace(ingredientsWithInventory);
+
+      // Atualiza o estado currentItem com os dados dos ingredientes
+      const newCurrentItems = selectedProduct.ingredients.map((ing) => ({
+        value: ing.inventory._id,
+        label: ing.name,
+      }));
+      setCurrentItem(newCurrentItems);
+
+      // Atualiza o estado do produto base selecionado
+      setSelectedBaseProduct(productId);
+    }
+  };
+
+  // Função para resetar o formulário
+  const handleResetForm = () => {
+    reset({
+      name: "",
+      ingredients: [{ inventory: "", quantity: 0 }],
+    });
+    setCurrentItem([]);
+    setSelectedBaseProduct("");
+  };
 
   const onSubmit = async (data: ProductFormData) => {
     try {
@@ -80,6 +127,7 @@ export function CreateProductForm() {
       });
 
       toast.success("Produto criado com sucesso!");
+      onCreate();
     } catch (error) {
       console.error("Erro ao criar produto:", error);
       if (error instanceof AxiosError)
@@ -97,10 +145,22 @@ export function CreateProductForm() {
 
   return (
     <>
-      <Card className="mx-auto px-6 pt-4">
+      <Card className="">
         <CardHeader className="flex justify-between mb-4"></CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Campo para selecionar um produto base */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">
+                Selecione um produto para usar como base(Opcional)
+              </label>
+              <Combobox
+                items={products.map((p) => ({ value: p._id, label: p.name }))}
+                value={selectedBaseProduct} // Valor selecionado
+                onChange={(ev) => handleSelectProduct(ev.value)}
+              />
+            </div>
+
             <div className="space-y-4 mt-4">
               <Controller
                 name="name"
@@ -133,7 +193,7 @@ export function CreateProductForm() {
                           render={({ field }) => (
                             <Combobox
                               items={allInventory}
-                              value={currentItem[index]?.value || ""}
+                              value={currentItem[index]?.value || ""} // Valor selecionado
                               onChange={(ev) => {
                                 field.onChange(ev.value);
                                 setCurrentItem((prevItems) => {
@@ -199,14 +259,24 @@ export function CreateProductForm() {
               </Button>
             </div>
 
-            <Button type="submit" className="w-full">
-              Salvar Produto
-            </Button>
+            {/* Botões de Salvar e Resetar */}
+            <div className="flex gap-4">
+              <Button type="submit" className="flex-1">
+                Salvar Produto
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResetForm}
+                className="flex-1"
+              >
+                <RefreshCw size={16} className="mr-2" />
+                Resetar
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>
-
-      {/* Modal para exibir os produtos cadastrados */}
     </>
   );
 }

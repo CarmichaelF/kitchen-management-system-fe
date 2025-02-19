@@ -1,51 +1,60 @@
 "use client";
 
-import { Bot, SquareTerminal } from "lucide-react";
-
 import { Sidebar, SidebarContent, SidebarRail } from "@/components/ui/sidebar";
 import { NavMain } from "./nav-main";
+
+import {
+  LayoutDashboard,
+  Package,
+  Warehouse,
+  ShoppingBag,
+  Tag,
+  Users,
+  FileText,
+  ClipboardList,
+} from "lucide-react";
 
 const data = {
   navMain: [
     {
       title: "Visão Geral",
       url: "/dashboard",
-      icon: SquareTerminal,
-    },
-    {
-      title: "Estoque",
-      url: "/dashboard/inventory",
-      icon: SquareTerminal,
+      icon: LayoutDashboard, // Ícone que representa um painel de controle
     },
     {
       title: "Insumos",
       url: "/dashboard/input",
-      icon: Bot,
+      icon: Package, // Representa pacotes ou insumos
     },
     {
-      title: "Precificação",
-      url: "/dashboard/pricing",
-      icon: Bot,
+      title: "Estoque",
+      url: "/dashboard/inventory",
+      icon: Warehouse, // Representa armazenamento/estoque
     },
     {
       title: "Produtos",
       url: "/dashboard/product",
-      icon: Bot,
+      icon: ShoppingBag, // Representa itens/produtos
     },
     {
-      title: "Encomendas/Vendas",
-      url: "/dashboard/order",
-      icon: Bot,
+      title: "Precificação",
+      url: "/dashboard/pricing",
+      icon: Tag, // Ícone de etiqueta de preço
     },
     {
       title: "Cadastro de Cliente",
-      url: "/dashboard/customer/register",
-      icon: Bot,
+      url: "/dashboard/customer",
+      icon: Users, // Ícone que representa múltiplas pessoas
+    },
+    {
+      title: "Encomendas / Vendas",
+      url: "/dashboard/order",
+      icon: FileText, // Ícone de documento, representando pedidos
     },
     {
       title: "Quadro de Pedidos",
       url: "/dashboard/order/board",
-      icon: Bot,
+      icon: ClipboardList, // Ícone de checklist/quadro de tarefas
     },
   ],
 };
