@@ -32,14 +32,13 @@ interface ComboboxProps {
 }
 
 export function Combobox({ value, onChange, items }: ComboboxProps) {
-  const [open, setOpen] = React.useState(false);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           role="combobox"
-          aria-expanded={open}
+          aria-expanded="false"
           className="w-full justify-between"
         >
           {value
@@ -48,7 +47,11 @@ export function Combobox({ value, onChange, items }: ComboboxProps) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 mr-auto">
+      <PopoverContent
+        forceMount
+        style={{ pointerEvents: "auto" }}
+        className="w-full p-0 mr-auto"
+      >
         <Command>
           <CommandInput placeholder="Search..." />
           <CommandList>
@@ -60,7 +63,6 @@ export function Combobox({ value, onChange, items }: ComboboxProps) {
                   value={item.value}
                   onSelect={() => {
                     onChange(item);
-                    setOpen(false);
                   }}
                 >
                   <Check

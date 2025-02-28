@@ -68,14 +68,17 @@ export function OrderDetailsModal({
                     <div key={index} className="flex justify-between">
                       <div>
                         <p className="text-sm">
-                          {item?.pricing?.product?.name}
+                          {item?.pricingDetails.product.name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {item.quantity}x R$ {order.totalPrice}
+                          {item.quantity}x R$ {item.pricingDetails.sellingPrice}
                         </p>
                       </div>
                       <p className="text-sm font-medium">
-                        R$ {(order.totalPrice / item.quantity).toFixed(2)}
+                        R${" "}
+                        {(
+                          item.pricingDetails.sellingPrice * item.quantity
+                        ).toFixed(2)}
                       </p>
                     </div>
                   );

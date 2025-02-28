@@ -20,6 +20,7 @@ export interface PricingEditData {
   profitMargin?: number;
   platformFee?: number;
   yields?: number;
+  packing?: number;
 }
 
 interface PricingEditModalProps {
@@ -45,6 +46,7 @@ export function PricingEditModal({
         profitMargin: pricingData.profitMargin,
         platformFee: pricingData.platformFee,
         yields: pricingData.yields,
+        packing: pricingData.packing,
       });
     }
   }, [pricingData, reset]);
@@ -81,6 +83,11 @@ export function PricingEditModal({
             {...register("platformFee", { valueAsNumber: true })}
             type="number"
             placeholder="Taxa Plataforma (%)"
+          />
+          <Input
+            {...register("packing", { valueAsNumber: true })}
+            type="number"
+            placeholder="Embalagem (Unidade)"
           />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

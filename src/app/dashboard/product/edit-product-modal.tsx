@@ -9,38 +9,26 @@ import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
 import { Combobox, ComboboxItemDTO } from "@/components/ui/combobox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, Trash } from "lucide-react";
 import { QuantityInput } from "@/components/ui/quantity-input";
-import { Unity } from "@/context/input-context";
-import {
-  InventoryData,
-  InventoryDTO,
-  useInventoryContext,
-} from "@/context/inventory-context";
+import { useInventoryContext } from "@/context/inventory-context";
 import { toast } from "sonner";
 import { api } from "@/service/axios";
 import { AxiosError } from "axios";
-
-export interface ProductDTO {
-  _id: string;
-  name: string;
-  ingredients: {
-    _id: string;
-    inventory: InventoryDTO;
-    quantity: number;
-    name: string;
-  }[];
-}
+import { Unity } from "@/context/input-context";
 
 const editProductSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
   ingredients: z.array(
     z.object({
-      inventory: z.string().min(1, "Selecione um insumo"),
-      quantity: z.number().min(0.01, "Quantidade inválida"),
+      inventory: z.object({
+        id: z.string(),
+      }),
+      quantity: z.number().min(0.000000000001, "Quantidade inválida"),
+      unity: z.string().optional(),
     })
   ),
 });
@@ -50,7 +38,18 @@ type EditProductFormData = z.infer<typeof editProductSchema>;
 interface EditProductModalProps {
   open: boolean;
   setOpen: Dispatch<SetStateAction<boolean>>;
-  product: ProductDTO;
+  product: {
+    _id: string;
+    name: string;
+    ingredients: {
+      inventory: {
+        id: string;
+      };
+      unity: string;
+      quantity: number;
+      name: string;
+    }[];
+  };
 }
 
 export function EditProductModal({
@@ -59,24 +58,24 @@ export function EditProductModal({
   product,
 }: EditProductModalProps) {
   const { allInventory } = useInventoryContext();
-  const [currentItem, setCurrentItem] = useState<ComboboxItemDTO[]>(() =>
-    product.ingredients.map((ingredient) => ({
-      value: ingredient.inventory._id,
-      label: ingredient.name,
-    }))
-  );
 
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
+    setValue,
   } = useForm<EditProductFormData>({
     resolver: zodResolver(editProductSchema),
     defaultValues: {
       name: product.name,
       ingredients: product.ingredients.map((ingredient) => ({
-        inventory: ingredient.inventory._id,
         quantity: ingredient.quantity,
+        unity: ingredient.unity,
+        inventory: {
+          id: ingredient.inventory.id,
+        },
+        name: ingredient.name,
       })),
     },
   });
@@ -86,55 +85,80 @@ export function EditProductModal({
     name: "ingredients",
   });
 
+  const inventoryMap = useMemo(() => {
+    return new Map(allInventory.map((item) => [item.value, item]));
+  }, [allInventory]);
+
+  useEffect(() => {
+    reset({
+      name: product.name,
+      ingredients: product.ingredients.map((ingredient) => ({
+        quantity: ingredient.quantity,
+        unity: ingredient.unity,
+        inventory: {
+          id: ingredient.inventory.id,
+        },
+        name: ingredient.name,
+      })),
+    });
+  }, [product, reset]);
+
   const onSubmit = async (data: EditProductFormData) => {
     try {
-      await api.put(`/product/${product._id}`, {
+      const payload = {
         name: data.name,
-        ingredients: data.ingredients.map((ingredient, index) => ({
-          inventory: ingredient.inventory,
-          quantity: ingredient.quantity,
-          name: currentItem[index]?.label,
+        ingredients: data.ingredients.map((ingredient) => ({
+          ...ingredient,
+          inventory: {
+            _id: ingredient.inventory.id,
+            name: inventoryMap.get(ingredient.inventory.id)?.label || "",
+          },
+          unity: ingredient.unity,
+          name: inventoryMap.get(ingredient.inventory.id)?.label,
         })),
-      });
+      };
 
+      await api.put(`/product/${product._id}`, payload);
       toast.success("Produto atualizado com sucesso!");
       setOpen(false);
     } catch (error) {
       console.error("Erro ao editar produto:", error);
-      if (error instanceof AxiosError)
-        return toast.error(error.response?.data.message);
-      return toast.error("Erro ao editar o produto.");
+      if (error instanceof AxiosError) {
+        toast.error(error.response?.data.message);
+      } else {
+        toast.error("Erro ao editar o produto.");
+      }
     }
   };
 
-  const getIngredientUnity = (index: number) => {
-    const ingredient = allInventory.find(
-      (n: InventoryData) => n.value === currentItem?.[index]?.value
+  const handleInventoryChange = (index: number, selected: ComboboxItemDTO) => {
+    const inventory = allInventory.find(
+      (item) => item.value === selected.value
     );
-    return ingredient?.unity || "kg";
+    if (inventory) {
+      // Atualiza apenas os campos derivados do inventário
+      setValue(`ingredients.${index}.inventory`, { id: selected.value });
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} key={product._id}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Editar Produto</DialogTitle>
         </DialogHeader>
+
         <Card>
-          <CardContent>
+          <CardContent className="pt-4">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <Controller
                 name="name"
                 control={control}
                 render={({ field }) => (
                   <div>
-                    <Input
-                      {...field}
-                      placeholder="Nome do Produto"
-                      className="w-full"
-                    />
+                    <Input {...field} placeholder="Nome do Produto" />
                     {errors.name && (
-                      <p className="text-sm text-red-500">
+                      <p className="text-red-500 text-sm">
                         {errors.name.message}
                       </p>
                     )}
@@ -143,76 +167,80 @@ export function EditProductModal({
               />
 
               <div className="space-y-4">
-                {fields.map((field, index) => {
-                  const unity = getIngredientUnity(index);
-                  return (
-                    <div key={field.id} className="flex gap-4 items-start">
-                      <div className="flex-1 space-y-2">
-                        <Controller
-                          name={`ingredients.${index}.inventory`}
-                          control={control}
-                          render={({ field }) => (
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex gap-4 items-start">
+                    <div className="flex-1 space-y-2">
+                      <Controller
+                        name={`ingredients.${index}.inventory.id`}
+                        control={control}
+                        render={({ field: innerField }) => {
+                          return (
                             <Combobox
                               items={allInventory}
-                              value={currentItem[index]?.value || ""}
-                              onChange={(ev) => {
-                                field.onChange(ev.value);
-                                setCurrentItem((prevItems) => {
-                                  const newItems = [...prevItems];
-                                  newItems[index] = ev;
-                                  return newItems;
-                                });
-                              }}
-                            />
-                          )}
-                        />
-                        {errors.ingredients?.[index]?.inventory && (
-                          <p className="text-sm text-red-500">
-                            {errors.ingredients[index]?.inventory?.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex-1 space-y-2">
-                        <Controller
-                          name={`ingredients.${index}.quantity`}
-                          control={control}
-                          render={({ field }) => (
-                            <QuantityInput
-                              {...field}
-                              value={String(field.value)}
-                              unity={unity as Unity}
-                              onChange={(value) =>
-                                field.onChange(Number(value))
+                              value={innerField.value}
+                              onChange={(selected) =>
+                                handleInventoryChange(index, selected)
                               }
                             />
-                          )}
-                        />
-                        {errors.ingredients?.[index]?.quantity && (
-                          <p className="text-sm text-red-500">
-                            {errors.ingredients[index]?.quantity?.message}
-                          </p>
-                        )}
-                      </div>
-
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => remove(index)}
-                        className="mt-1"
-                      >
-                        <Trash size={16} />
-                      </Button>
+                          );
+                        }}
+                      />
+                      {errors.ingredients?.[index]?.inventory && (
+                        <p className="text-red-500 text-sm">
+                          {errors.ingredients[index]?.inventory?.message}
+                        </p>
+                      )}
                     </div>
-                  );
-                })}
+
+                    <div className="flex-1 space-y-2">
+                      <Controller
+                        name={`ingredients.${index}.quantity`}
+                        control={control}
+                        render={({ field: innerField }) => {
+                          return (
+                            <QuantityInput
+                              {...innerField}
+                              value={String(innerField.value)}
+                              unity={field.unity as Unity}
+                              onChange={(value) =>
+                                innerField.onChange(Number(value))
+                              }
+                            />
+                          );
+                        }}
+                      />
+                      {errors.ingredients?.[index]?.quantity && (
+                        <p className="text-red-500 text-sm">
+                          {errors.ingredients[index]?.quantity?.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      onClick={() => remove(index)}
+                      className="mt-1"
+                    >
+                      <Trash size={16} />
+                    </Button>
+                  </div>
+                ))}
               </div>
 
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => append({ inventory: "", quantity: 0 })}
+                onClick={() =>
+                  append({
+                    quantity: 0,
+                    unity: "un",
+                    inventory: {
+                      id: "",
+                    },
+                  })
+                }
                 className="w-full"
               >
                 <Plus size={16} className="mr-2" />

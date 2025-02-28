@@ -36,7 +36,7 @@ export function ProductTable() {
           const enrichedIngredients = await Promise.all(
             (product.ingredients || []).map(async (ingredient) => {
               const { data } = await getInventory({
-                id: ingredient?.inventory._id,
+                id: ingredient?.inventory.id,
               });
               return { ...ingredient, unity: data.unity };
             })
@@ -68,7 +68,6 @@ export function ProductTable() {
   useEffect(() => {
     handleViewProducts();
   }, [open]);
-
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold">Cadastro de Produtos</h1>
@@ -105,18 +104,18 @@ export function ProductTable() {
                       <tbody>
                         {product.ingredients.map((ingredient) => (
                           <tr
-                            key={ingredient._id}
+                            key={ingredient.id}
                             className="border-b last:border-0"
                           >
                             <td className="px-4 py-2 text-sm">
-                              {ingredient.inventory._id}
+                              {ingredient.inventory.id}
                             </td>
                             <td className="px-4 py-2 text-sm">
                               {ingredient.name}
                             </td>
                             <td className="px-4 py-2 text-sm">
                               {ingredient.quantity}
-                              {ingredient.inventory.unity}
+                              {ingredient.unity}
                             </td>
                           </tr>
                         ))}

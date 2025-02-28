@@ -29,6 +29,7 @@ interface PricingFormData {
   platformFee?: number;
   fixedCosts: FixedCostsData;
   yields: number;
+  packing: number;
 }
 
 interface PricingFormProps {
@@ -67,7 +68,6 @@ export function PricingForm({ products, onPricingCreated }: PricingFormProps) {
     try {
       const fixedCostsData = getValues("fixedCosts");
       await api.post("/pricing/fixed-costs", fixedCostsData);
-      console.log("Fixed costs atualizados com sucesso.");
     } catch (err) {
       console.error("Erro ao atualizar fixed costs:", err);
     }
@@ -83,6 +83,7 @@ export function PricingForm({ products, onPricingCreated }: PricingFormProps) {
         profitMargin: data.profitMargin,
         platformFee: data.platformFee,
         yields: data.yields,
+        packing: data.packing,
       };
       const response = await api.post("/pricing", pricingData);
       onPricingCreated(response.data);
@@ -107,8 +108,7 @@ export function PricingForm({ products, onPricingCreated }: PricingFormProps) {
               placeholder="Aluguel (R$)"
             />
             <Input
-              {...register("fixedCosts.taxes", { valueAsNumber: true })}
-              type="number"
+              {...register("fixedCosts.taxes")}
               placeholder="Impostos (R$)"
             />
             <Input
@@ -172,6 +172,12 @@ export function PricingForm({ products, onPricingCreated }: PricingFormProps) {
             {...register("platformFee", { valueAsNumber: true })}
             type="number"
             placeholder="Taxa Plataforma (%)"
+          />
+
+          <Input
+            {...register("packing", { valueAsNumber: true })}
+            type="number"
+            placeholder="Embalagem (Unidade)"
           />
 
           <Button type="submit" className="w-full">

@@ -33,7 +33,7 @@ export interface OrderWithDetails extends OrderItem {
   };
   items?: {
     quantity: number;
-    pricing: Pricing;
+    pricingDetails: Pricing;
   }[];
 }
 

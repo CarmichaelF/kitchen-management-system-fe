@@ -16,7 +16,6 @@ import { Unity } from "@/context/input-context";
 import "react-json-view-lite/dist/index.css";
 import {
   InventoryData,
-  InventoryDTO,
   useInventoryContext,
 } from "@/context/inventory-context";
 import { AxiosError } from "axios";
@@ -25,10 +24,13 @@ export interface ProductDTO {
   _id: string;
   name: string;
   ingredients: {
-    _id: string;
-    inventory: InventoryDTO;
-    quantity: number;
+    inventory: {
+      id: string;
+    };
+    unity: string;
     name: string;
+    quantity: number;
+    id: string;
   }[];
   createdAt: Date;
 }
@@ -85,7 +87,7 @@ export function CreateProductForm({
       // Preenche os ingredientes
       const ingredientsWithInventory = selectedProduct.ingredients.map(
         (ing) => ({
-          inventory: ing.inventory._id,
+          inventory: ing.inventory.id,
           quantity: ing.quantity,
         })
       );
@@ -93,7 +95,7 @@ export function CreateProductForm({
 
       // Atualiza o estado currentItem com os dados dos ingredientes
       const newCurrentItems = selectedProduct.ingredients.map((ing) => ({
-        value: ing.inventory._id,
+        value: ing.inventory.id,
         label: ing.name,
       }));
       setCurrentItem(newCurrentItems);
@@ -238,7 +240,14 @@ export function CreateProductForm({
                         type="button"
                         variant="destructive"
                         size="icon"
-                        onClick={() => remove(index)}
+                        onClick={() => {
+                          remove(index); // Remove o campo do formulário
+                          setCurrentItem((prev) => {
+                            const newItems = [...prev];
+                            newItems.splice(index, 1); // Remove o item correspondente em currentItem
+                            return newItems;
+                          });
+                        }}
                         className="mt-1"
                       >
                         <Trash size={16} />
@@ -251,7 +260,10 @@ export function CreateProductForm({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => append({ inventory: "", quantity: 0 })}
+                onClick={() => {
+                  append({ inventory: "", quantity: 0 });
+                  setCurrentItem((prev) => [...prev, { value: "", label: "" }]); // Adiciona um item vazio em currentItem
+                }}
                 className="w-full"
               >
                 <Plus size={16} className="mr-2" />

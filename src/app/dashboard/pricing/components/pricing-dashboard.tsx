@@ -39,6 +39,7 @@ export interface Pricing {
   createdAt: Date;
   productionCost: number;
   yields: number;
+  packing: number;
 }
 
 export function PricingDashboard() {
