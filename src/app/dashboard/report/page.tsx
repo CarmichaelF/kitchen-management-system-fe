@@ -98,7 +98,7 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
+    <div className="container mx-auto p-6">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
@@ -111,7 +111,10 @@ export default function ReportPage() {
 
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6 mt-4"
+            >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Data Inicial */}
                 <FormField

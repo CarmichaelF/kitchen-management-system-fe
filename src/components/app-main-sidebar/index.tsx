@@ -12,9 +12,10 @@ import {
   Users,
   FileText,
   ClipboardList,
+  Sheet,
 } from "lucide-react";
 
-const data = {
+export const data = {
   navMain: [
     {
       title: "Visão Geral",
@@ -55,6 +56,11 @@ const data = {
       title: "Quadro de Pedidos",
       url: "/dashboard/order/board",
       icon: ClipboardList, // Ícone de checklist/quadro de tarefas
+    },
+    {
+      title: "Relatórios",
+      url: "/dashboard/report",
+      icon: Sheet,
     },
   ],
 };

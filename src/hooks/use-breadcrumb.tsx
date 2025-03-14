@@ -13,6 +13,7 @@ export function useBreadcrumb({ id }: { id?: string }) {
     ["/dashboard/customer", "Cadastro de Clientes"],
     ["/dashboard/order", "Encomendas / Vendas"],
     ["/dashboard/order/board", "Quadro de Pedidos"],
+    ["/dashboard/report", "Relatórios"],
   ]);
 
   // Adiciona o breadcrumb do ID se existir

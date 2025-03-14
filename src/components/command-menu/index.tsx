@@ -1,15 +1,6 @@
 "use client";
 
 import * as React from "react";
-import {
-  ClipboardList,
-  FileText,
-  Package,
-  ShoppingBag,
-  Tag,
-  Users,
-  Warehouse,
-} from "lucide-react";
 
 import {
   CommandDialog,
@@ -22,6 +13,7 @@ import {
 } from "@/components/ui/command";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { data } from "../app-main-sidebar";
 
 export function CommandMenu() {
   const pathName = usePathname();
@@ -52,34 +44,14 @@ export function CommandMenu() {
         <CommandList>
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup heading="Páginas">
-            <CommandItem>
-              <Package />
-              <Link href="/dashboard/input">Insumos</Link>
-            </CommandItem>
-            <CommandItem>
-              <Warehouse />
-              <Link href="/dashboard/inventory">Estoque</Link>
-            </CommandItem>
-            <CommandItem>
-              <ShoppingBag />
-              <Link href="/dashboard/product">Produtos</Link>
-            </CommandItem>
-            <CommandItem>
-              <Tag />
-              <Link href="/dashboard/pricing">Precificação</Link>
-            </CommandItem>
-            <CommandItem>
-              <Users />
-              <Link href="/dashboard/customer">Cadastro de clientes</Link>
-            </CommandItem>
-            <CommandItem>
-              <FileText />
-              <Link href="/dashboard/order">Encomendas / Vendas</Link>
-            </CommandItem>
-            <CommandItem>
-              <ClipboardList />
-              <Link href="/dashboard/order/board">Quadro de Pedidos</Link>
-            </CommandItem>
+            {data.navMain.map(({ icon: Icon, title, url }) => (
+              <CommandItem key={url} className="w-full !p-0">
+                <Link className="w-full p-4 flex items-center gap-2" href={url}>
+                  <Icon />
+                  {title}
+                </Link>
+              </CommandItem>
+            ))}
           </CommandGroup>
           <CommandSeparator />
         </CommandList>
