@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { api } from "@/service/axios";
 import { DeleteDialog } from "@/components/ui/delete-dialog";
+import { PDFDocument } from "./pdf-product";
+import { PDFDownloadLink } from "@react-pdf/renderer";
 
 export function ProductTable() {
   const { getAll } = useFetchData({ path: "product" });
   const { getByID } = useFetchData({ path: "inventory" });
-  const [products, setProducts] = useState<ProductDTO[]>([]);
+  const [products, setProducts] = useState<ProductDTO[]>([] as ProductDTO[]);
   const [open, setOpen] = useState(false);
-
   const [deletingProductID, setDeletingProductID] = useState<string>();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductDTO | null>(
@@ -68,6 +69,7 @@ export function ProductTable() {
   useEffect(() => {
     handleViewProducts();
   }, [open]);
+
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold">Cadastro de Produtos</h1>
@@ -83,8 +85,21 @@ export function ProductTable() {
           {products && products.length > 0 ? (
             products.map((product) => (
               <div key={product._id} className="border p-4 rounded">
-                <h3 className="font-bold text-lg mb-2">{product.name}</h3>
-
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-lg mb-2">{product.name}</h3>
+                  <Button variant="link">
+                    <PDFDownloadLink
+                      document={<PDFDocument product={product} />}
+                      fileName={`Ficha técnica - ${product.name}`}
+                    >
+                      {({ loading }) =>
+                        loading
+                          ? "Carregando documento..."
+                          : "Baixar ficha técnica"
+                      }
+                    </PDFDownloadLink>
+                  </Button>
+                </div>
                 {product.ingredients && product.ingredients.length > 0 ? (
                   <>
                     <table className="w-full border-collapse">
@@ -104,7 +119,7 @@ export function ProductTable() {
                       <tbody>
                         {product.ingredients.map((ingredient) => (
                           <tr
-                            key={ingredient.id}
+                            key={ingredient._id}
                             className="border-b last:border-0"
                           >
                             <td className="px-4 py-2 text-sm">

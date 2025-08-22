@@ -19,6 +19,7 @@ import {
   useInventoryContext,
 } from "@/context/inventory-context";
 import { AxiosError } from "axios";
+import { Pricing } from "../pricing/components/pricing-dashboard";
 
 export interface ProductDTO {
   _id: string;
@@ -30,9 +31,10 @@ export interface ProductDTO {
     unity: string;
     name: string;
     quantity: number;
-    id: string;
+    _id: string;
   }[];
   createdAt: Date;
+  pricing: Pricing;
 }
 
 const productSchema = z.object({
