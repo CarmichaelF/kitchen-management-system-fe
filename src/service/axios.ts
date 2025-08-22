@@ -3,7 +3,7 @@ import Cookies from 'universal-cookie';
 
 // Criação da instância do axios
 export const api = axios.create({
-  baseURL: 'http://localhost:3333',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333',
 });
 
 // Adicionando um interceptor de requisição
