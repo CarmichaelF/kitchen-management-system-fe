@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { api } from "@/service/axios";
 import { AxiosError } from "axios";
 import { Unity } from "@/context/input-context";
+import { Textarea } from "@/components/ui/textarea";
 
 const editProductSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),
@@ -31,6 +32,7 @@ const editProductSchema = z.object({
       unity: z.string().optional(),
     })
   ),
+  preparationMethod: z.string(),
 });
 
 type EditProductFormData = z.infer<typeof editProductSchema>;
@@ -49,6 +51,7 @@ interface EditProductModalProps {
       quantity: number;
       name: string;
     }[];
+    preparationMethod: string;
   };
 }
 
@@ -77,6 +80,7 @@ export function EditProductModal({
         },
         name: ingredient.name,
       })),
+      preparationMethod: product.preparationMethod,
     },
   });
 
@@ -100,6 +104,7 @@ export function EditProductModal({
         },
         name: ingredient.name,
       })),
+      preparationMethod: product.preparationMethod,
     });
   }, [product, reset]);
 
@@ -116,6 +121,7 @@ export function EditProductModal({
           unity: ingredient.unity,
           name: inventoryMap.get(ingredient.inventory.id)?.label,
         })),
+        preparationMethod: data.preparationMethod,
       };
 
       await api.put(`/product/${product._id}`, payload);
@@ -156,6 +162,9 @@ export function EditProductModal({
                 control={control}
                 render={({ field }) => (
                   <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Nome do Produto
+                    </label>
                     <Input {...field} placeholder="Nome do Produto" />
                     {errors.name && (
                       <p className="text-red-500 text-sm">
@@ -166,67 +175,91 @@ export function EditProductModal({
                 )}
               />
 
-              <div className="space-y-4">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex gap-4 items-start">
-                    <div className="flex-1 space-y-2">
-                      <Controller
-                        name={`ingredients.${index}.inventory.id`}
-                        control={control}
-                        render={({ field: innerField }) => {
-                          return (
-                            <Combobox
-                              items={allInventory}
-                              value={innerField.value}
-                              onChange={(selected) =>
-                                handleInventoryChange(index, selected)
-                              }
-                            />
-                          );
-                        }}
-                      />
-                      {errors.ingredients?.[index]?.inventory && (
-                        <p className="text-red-500 text-sm">
-                          {errors.ingredients[index]?.inventory?.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex-1 space-y-2">
-                      <Controller
-                        name={`ingredients.${index}.quantity`}
-                        control={control}
-                        render={({ field: innerField }) => {
-                          return (
-                            <QuantityInput
-                              {...innerField}
-                              value={String(innerField.value)}
-                              unity={field.unity as Unity}
-                              onChange={(value) =>
-                                innerField.onChange(Number(value))
-                              }
-                            />
-                          );
-                        }}
-                      />
-                      {errors.ingredients?.[index]?.quantity && (
-                        <p className="text-red-500 text-sm">
-                          {errors.ingredients[index]?.quantity?.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => remove(index)}
-                      className="mt-1"
-                    >
-                      <Trash size={16} />
-                    </Button>
+              <Controller
+                name="preparationMethod"
+                control={control}
+                render={({ field }) => (
+                  <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Método de Preparo
+                    </label>
+                    <Textarea {...field} placeholder="Método de Preparo" />
+                    {errors.preparationMethod && (
+                      <p className="text-red-500 text-sm">
+                        {errors.preparationMethod.message}
+                      </p>
+                    )}
                   </div>
-                ))}
+                )}
+              />
+
+              <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Insumos
+                </label>
+                <div className="max-h-60 overflow-y-auto ">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex gap-4 items-start ">
+                      <div className="flex-1 space-y-2">
+                        <Controller
+                          name={`ingredients.${index}.inventory.id`}
+                          control={control}
+                          render={({ field: innerField }) => {
+                            return (
+                              <Combobox
+                                items={allInventory}
+                                value={innerField.value}
+                                onChange={(selected) =>
+                                  handleInventoryChange(index, selected)
+                                }
+                              />
+                            );
+                          }}
+                        />
+                        {errors.ingredients?.[index]?.inventory && (
+                          <p className="text-red-500 text-sm">
+                            {errors.ingredients[index]?.inventory?.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex-1 space-y-2">
+                        <Controller
+                          name={`ingredients.${index}.quantity`}
+                          control={control}
+                          render={({ field: innerField }) => {
+                            return (
+                              <QuantityInput
+                                {...innerField}
+                                value={String(innerField.value)}
+                                unity={field.unity as Unity}
+                                onChange={(value) =>
+                                  innerField.onChange(Number(value))
+                                }
+                              />
+                            );
+                          }}
+                        />
+
+                        {errors.ingredients?.[index]?.quantity && (
+                          <p className="text-red-500 text-sm">
+                            {errors.ingredients[index]?.quantity?.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => remove(index)}
+                        className="mt-1"
+                      >
+                        <Trash size={16} />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <Button

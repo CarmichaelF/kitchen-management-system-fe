@@ -20,6 +20,7 @@ import {
 } from "@/context/inventory-context";
 import { AxiosError } from "axios";
 import { Pricing } from "../pricing/components/pricing-dashboard";
+import { Textarea } from "@/components/ui/textarea";
 
 export interface ProductDTO {
   _id: string;
@@ -35,6 +36,7 @@ export interface ProductDTO {
   }[];
   createdAt: Date;
   pricing: Pricing;
+  preparationMethod: string;
 }
 
 const productSchema = z.object({
@@ -45,6 +47,7 @@ const productSchema = z.object({
       quantity: z.number().min(0.000000000001, "Quantidade inválida"),
     })
   ),
+  preparationMethod: z.string(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -128,6 +131,7 @@ export function CreateProductForm({
             name: currentItem[index].label,
           })
         ),
+        preparationMethod: data.preparationMethod,
       });
 
       toast.success("Produto criado com sucesso!");
@@ -171,6 +175,9 @@ export function CreateProductForm({
                 control={control}
                 render={({ field }) => (
                   <div>
+                    <label className="text-sm font-medium text-gray-700">
+                      Nome do Produto
+                    </label>
                     <Input
                       {...field}
                       placeholder="Nome do produto"
@@ -185,7 +192,27 @@ export function CreateProductForm({
                 )}
               />
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Método de Preparo
+                </label>
+                <Controller
+                  name="preparationMethod"
+                  control={control}
+                  render={({ field }) => (
+                    <Textarea
+                      {...field}
+                      placeholder="Método de Preparo"
+                      className="w-full"
+                    />
+                  )}
+                />
+              </div>
+
               <div className="space-y-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Insumos
+                </label>
                 {fields.map((field, index) => {
                   const unity = getIngredientUnity(index);
                   return (

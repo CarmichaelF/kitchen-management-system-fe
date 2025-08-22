@@ -17,6 +17,7 @@ interface Product {
     sellingPrice: number;
     yields: number;
   };
+  preparationMethod: string;
 }
 
 interface PDFProductProps {
@@ -102,6 +103,23 @@ const styles = StyleSheet.create({
   ingredients: {
     display: "flex",
   },
+  preparationMethod: {
+    fontSize: 16,
+  },
+  preparationMethodBody: {
+    border: "1px solid #333",
+    borderRadius: 4,
+    padding: 8,
+    marginBottom: 16,
+    backgroundColor: "#f5f5f5",
+    fontSize: 13,
+  },
+  preparationMethodTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    marginTop: 10,
+    marginBottom: 10,
+  },
   unit: {
     fontSize: 16,
     fontWeight: 600,
@@ -109,53 +127,65 @@ const styles = StyleSheet.create({
 });
 
 export const PDFDocument = ({
-  product: { ingredients, name, pricing },
-}: PDFProductProps) => (
-  <Document>
-    <Page size="A4" style={styles.page}>
-      <View style={styles.section}>
-        <Text style={styles.title}>{`Ingredientes - ${name}`}</Text>
-        {pricing && (
-          <View style={styles.pricingBox}>
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>Custo de produção:</Text>
-              <Text style={styles.pricingValue}>
-                R$ {pricing.productionCost}
-              </Text>
-            </View>
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>Preço de venda:</Text>
-              <Text style={styles.pricingValue}>R$ {pricing.sellingPrice}</Text>
-            </View>
-            <View style={styles.pricingRow}>
-              <Text style={styles.pricingLabel}>Rendimento:</Text>
-              <Text style={styles.pricingValue}>{pricing.yields}</Text>
-            </View>
-          </View>
-        )}
-        <View style={styles.table}>
-          <View style={styles.tableRow}>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableHeaderText}>Ingrediente</Text>
-            </View>
-            <View style={styles.tableColHeader}>
-              <Text style={styles.tableHeaderText}>Quantidade (Unidade)</Text>
-            </View>
-          </View>
-          {ingredients?.map((ingredient) => (
-            <View style={styles.tableRow} key={ingredient.name}>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>{ingredient.name}</Text>
-              </View>
-              <View style={styles.tableCol}>
-                <Text style={styles.tableCell}>
-                  {ingredient.quantity} ({ingredient.unity})
+  product: { ingredients, name, pricing, preparationMethod },
+}: PDFProductProps) => {
+  return (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <View style={styles.section}>
+          <Text style={styles.title}>{`Ingredientes - ${name}`}</Text>
+          {pricing && (
+            <View style={styles.pricingBox}>
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>Custo de produção:</Text>
+                <Text style={styles.pricingValue}>
+                  R$ {pricing.productionCost}
                 </Text>
               </View>
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>Preço de venda:</Text>
+                <Text style={styles.pricingValue}>
+                  R$ {pricing.sellingPrice}
+                </Text>
+              </View>
+              <View style={styles.pricingRow}>
+                <Text style={styles.pricingLabel}>Rendimento:</Text>
+                <Text style={styles.pricingValue}>{pricing.yields}</Text>
+              </View>
             </View>
-          ))}
+          )}
+          <View style={styles.table}>
+            <View style={styles.tableRow}>
+              <View style={styles.tableColHeader}>
+                <Text style={styles.tableHeaderText}>Ingrediente</Text>
+              </View>
+              <View style={styles.tableColHeader}>
+                <Text style={styles.tableHeaderText}>Quantidade (Unidade)</Text>
+              </View>
+            </View>
+            {ingredients?.map((ingredient) => (
+              <View style={styles.tableRow} key={ingredient.name}>
+                <View style={styles.tableCol}>
+                  <Text style={styles.tableCell}>{ingredient.name}</Text>
+                </View>
+                <View style={styles.tableCol}>
+                  <Text style={styles.tableCell}>
+                    {ingredient.quantity} ({ingredient.unity})
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+          {preparationMethod && (
+            <View style={styles.preparationMethod}>
+              <Text style={styles.preparationMethodTitle}>Modo de Preparo</Text>
+              <Text style={styles.preparationMethodBody}>
+                {preparationMethod}
+              </Text>
+            </View>
+          )}
         </View>
-      </View>
-    </Page>
-  </Document>
-);
+      </Page>
+    </Document>
+  );
+};
