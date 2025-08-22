@@ -27,6 +27,8 @@ export function RegisterForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [adminSecret, setAdminSecret] = useState("");
+  const [role, setRole] = useState<"user" | "admin">("user");
 
   const { push } = useRouter();
 
@@ -39,11 +41,20 @@ export function RegisterForm({
     }
 
     try {
-      const response = await api.post("/auth/register", {
-        name,
-        email,
-        password,
-      });
+      const response = await api.post(
+        "/auth/register",
+        {
+          name,
+          email,
+          password,
+          role,
+        },
+        {
+          headers: {
+            "x-admin-secret": adminSecret, // Envia o header
+          },
+        }
+      );
 
       toast("Cadastro realizado com sucesso!");
       const cookies = new Cookies();
@@ -77,7 +88,7 @@ export function RegisterForm({
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
+                <Label htmlFor="name">Nome *</Label>
                 <Input
                   id="name"
                   type="text"
@@ -88,7 +99,7 @@ export function RegisterForm({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
                   type="email"
@@ -99,7 +110,7 @@ export function RegisterForm({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password">Senha *</Label>
                 <Input
                   id="password"
                   type="password"
@@ -109,7 +120,7 @@ export function RegisterForm({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Label htmlFor="confirmPassword">Confirmar Senha *</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -118,6 +129,47 @@ export function RegisterForm({
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="role">Função *</Label>
+                <div className="flex gap-4">
+                  <div className="flex items-center">
+                    <Input
+                      id="role"
+                      type="radio"
+                      value="user"
+                      checked={role === "user"}
+                      onChange={() => setRole("user")}
+                    />
+                    <Label htmlFor="role" className="ml-2">
+                      Usuário
+                    </Label>
+                  </div>
+                  <div className="flex items-center">
+                    <Input
+                      id="role"
+                      type="radio"
+                      value="admin"
+                      checked={role === "admin"}
+                      onChange={() => setRole("admin")}
+                    />
+                    <Label htmlFor="role" className="ml-2">
+                      Admin
+                    </Label>
+                  </div>
+                </div>
+              </div>
+              {role === "admin" && (
+                <div className="grid gap-2">
+                  <Label htmlFor="adminSecret">Admin Secret</Label>
+                  <Input
+                    id="adminSecret"
+                    type="text"
+                    placeholder="Chave secreta do admin"
+                    value={adminSecret}
+                    onChange={(e) => setAdminSecret(e.target.value)}
+                  />
+                </div>
+              )}
               <Button type="submit" className="w-full">
                 Criar Conta
               </Button>

@@ -35,7 +35,6 @@ export function LoginForm({
         password,
       });
       toast(response.data.message);
-
       cookies.set("token", response.data.token, {
         path: "/",
         secure: process.env.NODE_ENV === "production",
